@@ -11,16 +11,6 @@ const ACCOUNT_ICONS = {
       <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
     </svg>
   ),
-  kakao: (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-      <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.667 1.556 5.009 3.922 6.384L4.5 21l4.617-2.695A11.47 11.47 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
-    </svg>
-  ),
-  outlook: (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-      <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.31.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6.5V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V10.85l1.24.72q.01 0 .01.01.04.02.04.07v.28q0 .03-.04.05z"/>
-    </svg>
-  ),
 }
 
 const NAV_ITEMS = [
@@ -47,7 +37,7 @@ const NAV_ITEMS = [
   },
 ]
 
-const ACCOUNTS = ['gmail', 'naver', 'kakao']
+const ACCOUNTS = ['gmail', 'naver']
 
 export default function Sidebar({ activeFilter, setActiveFilter, mails, mailCount, onAddAccount, onLogout }) {
   const unreadCount = mailCount.unread ?? mails.filter(m => !m.isRead).length
