@@ -16,6 +16,14 @@ export async function getMailCount(token) {
   return res.json()
 }
 
+export async function deleteMail(token, mailId) {
+  const res = await fetch(`${BASE_URL}/api/mails/${mailId}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('메일 삭제에 실패했습니다')
+}
+
 export async function markAsRead(token, mailId) {
   await fetch(`${BASE_URL}/api/mails/${mailId}/read`, {
     method: 'PATCH',
@@ -28,5 +36,22 @@ export async function getMailDetail(token, mailId) {
     headers: { 'Authorization': `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('메일을 불러오지 못했습니다')
+  return res.json()
+}
+
+export async function syncMails(token) {
+  const res = await fetch(`${BASE_URL}/api/mails/sync`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('동기화 실패')
+}
+
+export async function loadOlderNaverMails(token) {
+  const res = await fetch(`${BASE_URL}/api/mails/load-older`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  if (!res.ok) return 0
   return res.json()
 }

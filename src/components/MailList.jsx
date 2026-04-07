@@ -77,27 +77,27 @@ export default function MailList({ mails, selectedMail, onSelect, onStar, search
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  {/* Top row */}
+                  {/* Row 1: sender + time */}
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {!mail.isRead && (
                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
                       )}
-                      <span className={`text-sm truncate ${!mail.isRead ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                      <span className={`text-xs truncate ${!mail.isRead ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
                         {mail.sender}
                       </span>
                     </div>
-                    <span className="text-[11px] text-gray-400 shrink-0 ml-2">{mail.time}</span>
+                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">{mail.time}</span>
                   </div>
 
-                  {/* Subject */}
-                  <p className={`text-xs truncate mb-1 ${!mail.isRead ? 'font-medium text-gray-800' : 'text-gray-500'}`}>
+                  {/* Row 2: subject */}
+                  <p className={`text-[11px] truncate mb-0.5 ${!mail.isRead ? 'font-medium text-gray-800' : 'text-gray-500'}`}>
                     {mail.subject}
                   </p>
 
-                  {/* Preview + badge row */}
+                  {/* Row 3: snippet + badge */}
                   <div className="flex items-center justify-between gap-1">
-                    <p className="text-[11px] text-gray-400 truncate flex-1">{mail.preview}</p>
+                    <p className="text-[10px] text-gray-400 truncate flex-1">{mail.preview}</p>
                     <div className="flex items-center gap-1 shrink-0">
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${ACCOUNT_LABELS[mail.account]?.color}`}>
                         {ACCOUNT_LABELS[mail.account]?.label}

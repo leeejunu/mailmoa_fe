@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { connectNaverAccount } from '../api/mailaccount'
+
 const PROVIDERS = [
   {
     id: 'gmail',
@@ -16,48 +20,48 @@ const PROVIDERS = [
     id: 'naver',
     label: 'Naver',
     desc: '네이버 메일 연동',
-    available: false,
+    available: true,
     icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
         <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z" />
       </svg>
     ),
     color: 'text-green-500',
-    border: '',
-  },
-  {
-    id: 'kakao',
-    label: 'Kakao',
-    desc: '카카오 메일 연동',
-    available: false,
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-        <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.667 1.556 5.009 3.922 6.384L4.5 21l4.617-2.695A11.47 11.47 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z" />
-      </svg>
-    ),
-    color: 'text-yellow-500',
-    border: '',
-  },
-  {
-    id: 'outlook',
-    label: 'Outlook',
-    desc: 'Microsoft Outlook 연동',
-    available: false,
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-        <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.31.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6.5V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V10.85l1.24.72q.01 0 .01.01.04.02.04.07v.28q0 .03-.04.05z" />
-      </svg>
-    ),
-    color: 'text-blue-500',
-    border: '',
+    border: 'hover:border-green-500/40 hover:bg-green-500/5',
   },
 ]
 
-export default function ConnectAccountModal({ onClose, userId }) {
+export default function ConnectAccountModal({ onClose, userId, onConnected }) {
+  const { token } = useAuth()
+  const [step, setStep] = useState('list')
+  const [naverEmail, setNaverEmail] = useState('')
+  const [naverPassword, setNaverPassword] = useState('')
+  const [connecting, setConnecting] = useState(false)
+  const [error, setError] = useState('')
+
   const handleConnect = (providerId) => {
+    if (providerId === 'naver') {
+      setStep('naver')
+      return
+    }
     const providerMap = { gmail: 'google' }
     const registrationId = providerMap[providerId] ?? providerId
     window.location.href = `http://localhost:8080/oauth2/authorization/${registrationId}?userId=${userId}`
+  }
+
+  const handleNaverSubmit = async (e) => {
+    e.preventDefault()
+    setConnecting(true)
+    setError('')
+    try {
+      await connectNaverAccount(token, naverEmail, naverPassword)
+      onConnected?.()
+      onClose()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setConnecting(false)
+    }
   }
 
   return (
@@ -67,9 +71,25 @@ export default function ConnectAccountModal({ onClose, userId }) {
       <div className="relative z-10 bg-gray-900 border border-white/10 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
-          <div>
-            <h2 className="text-base font-semibold text-white">계정 연동</h2>
-            <p className="text-xs text-gray-500 mt-0.5">연동할 메일 서비스를 선택하세요</p>
+          <div className="flex items-center gap-2">
+            {step === 'naver' && (
+              <button
+                onClick={() => { setStep('list'); setError('') }}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+            )}
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                {step === 'naver' ? 'Naver 메일 연동' : '계정 연동'}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {step === 'naver' ? '네이버 아이디와 비밀번호를 입력하세요' : '연동할 메일 서비스를 선택하세요'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -81,36 +101,87 @@ export default function ConnectAccountModal({ onClose, userId }) {
           </button>
         </div>
 
-        {/* Providers */}
-        <div className="px-6 pb-6 flex flex-col gap-2">
-          {PROVIDERS.map((provider) => (
-            <div
-              key={provider.id}
-              className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                provider.available
-                  ? `border-white/10 ${provider.border} cursor-pointer`
-                  : 'border-white/5 opacity-40 cursor-not-allowed'
-              }`}
-              onClick={() => provider.available && handleConnect(provider.id)}
-            >
-              <div className="flex items-center gap-3">
-                <span className={provider.available ? provider.color : 'text-gray-600'}>
-                  {provider.icon}
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-white">{provider.label}</p>
-                  <p className="text-xs text-gray-500">{provider.desc}</p>
+        {step === 'list' ? (
+          <div className="px-6 pb-6 flex flex-col gap-2">
+            {PROVIDERS.map((provider) => (
+              <div
+                key={provider.id}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                  provider.available
+                    ? `border-white/10 ${provider.border} cursor-pointer`
+                    : 'border-white/5 opacity-40 cursor-not-allowed'
+                }`}
+                onClick={() => provider.available && handleConnect(provider.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={provider.available ? provider.color : 'text-gray-600'}>
+                    {provider.icon}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-white">{provider.label}</p>
+                    <p className="text-xs text-gray-500">{provider.desc}</p>
+                  </div>
                 </div>
-              </div>
 
-              {provider.available ? (
-                <span className="text-xs text-indigo-400 font-medium">연동하기</span>
-              ) : (
-                <span className="text-[10px] text-gray-600 bg-white/5 px-2 py-0.5 rounded-full">준비중</span>
-              )}
+                {provider.available ? (
+                  <span className="text-xs text-indigo-400 font-medium">연동하기</span>
+                ) : (
+                  <span className="text-[10px] text-gray-600 bg-white/5 px-2 py-0.5 rounded-full">준비중</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <form onSubmit={handleNaverSubmit} className="px-6 pb-6 flex flex-col gap-3">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex flex-col gap-1.5">
+              <p className="text-xs text-green-400 font-medium mb-0.5">연동 전 아래 순서대로 설정하세요</p>
+              <p className="text-xs text-green-400/80">① 네이버 로그인 후 메일 접속</p>
+              <p className="text-xs text-green-400/80">② 메일 상단 <span className="text-green-400">환경설정</span> 클릭</p>
+              <p className="text-xs text-green-400/80">③ <span className="text-green-400">POP3/IMAP 설정</span> 탭 선택</p>
+              <p className="text-xs text-green-400/80">④ <span className="text-green-400">IMAP/SMTP 설정</span> 선택 → <span className="text-green-400">사용함</span> → 설정하기</p>
+              <p className="text-xs text-green-400/80">⑤ 같은 페이지에서 <span className="text-green-400">2단계 인증</span> 클릭하여 설정</p>
+              <p className="text-xs text-green-400/80">⑥ 2단계 인증 완료 후 <span className="text-green-400">애플리케이션 비밀번호 생성</span></p>
+              <p className="text-xs text-green-400/80">⑦ 종류: <span className="text-green-400">직접 입력</span> → <span className="text-green-400">mailmoa</span> 입력 → 생성하기</p>
+              <p className="text-xs text-green-400/80">⑧ 생성된 <span className="text-green-400">12자리 비밀번호</span>를 아래에 입력</p>
             </div>
-          ))}
-        </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-400">네이버 아이디 또는 이메일</label>
+              <input
+                type="text"
+                value={naverEmail}
+                onChange={(e) => setNaverEmail(e.target.value)}
+                placeholder="example@naver.com"
+                required
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-green-500/50 transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-400">비밀번호</label>
+              <input
+                type="password"
+                value={naverPassword}
+                onChange={(e) => setNaverPassword(e.target.value)}
+                placeholder="네이버 비밀번호"
+                required
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-green-500/50 transition-colors"
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={connecting}
+              className="mt-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              {connecting ? '연결 중...' : '연동하기'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

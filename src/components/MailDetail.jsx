@@ -15,7 +15,7 @@ function getSenderColor(name) {
   return SENDER_COLORS[hash % SENDER_COLORS.length]
 }
 
-export default function MailDetail({ mail, onStar }) {
+export default function MailDetail({ mail, onStar, onDelete }) {
   if (!mail) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 gap-3">
@@ -60,7 +60,7 @@ export default function MailDetail({ mail, onStar }) {
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </button>
-        <button className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-400 transition-colors cursor-pointer ml-auto">
+        <button onClick={() => onDelete(mail.id)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-400 transition-colors cursor-pointer ml-auto">
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
           </svg>
@@ -94,16 +94,16 @@ export default function MailDetail({ mail, onStar }) {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 relative min-h-0">
         {mail.body === null ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <iframe
             srcDoc={mail.body}
-            className="w-full h-full border-0"
-            sandbox="allow-same-origin"
+            className="absolute inset-0 w-full h-full border-0"
+            sandbox="allow-popups"
           />
         )}
       </div>
